@@ -216,5 +216,3 @@ Using **MAE**, **RMSE**, and **MAPE** across 15m, 30m, and 60m time horizons. Lo
 This project is open source. See [LICENSE](LICENSE) for details.
 
 ---
-
-<p align="center">Built with 🧠 GNNs + 🗺️ OpenStreetMap + ⚡ A* Search</p>
