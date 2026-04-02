@@ -1,0 +1,6 @@
+timestamp,sensor_id,name,current_speed_kmh,free_flow_speed_kmh
+2026-03-31 12:30:03,sensor_001,Rajwada Palace,6,6
+2026-03-31 12:30:03,sensor_002,Bhawarkua Square,25,34
+2026-03-31 12:30:03,sensor_003,Palasia Square,22,28
+2026-03-31 12:30:03,sensor_004,Indore Airport,43,43
+2026-03-31 12:30:03,sensor_005,Musakhedi Square,19,19
