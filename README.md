@@ -1,4 +1,4 @@
-# 🚦 Traffic-GNN: Dynamic Traffic Prediction & Route Optimization
+# Traffic-GNN: Dynamic Traffic Prediction & Route Optimization
 
 > **Spatio-Temporal Graph Neural Networks (STGNN) on Real-World Maps** 🌍📈
 
