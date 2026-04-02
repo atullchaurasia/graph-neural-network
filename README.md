@@ -166,8 +166,6 @@ Evaluated at **15-minute**, **30-minute**, and **60-minute** prediction horizons
 
 ## 📚 Core Concepts (Interview Prep)
 
-If you're using this project for an interview or portfolio, be ready to explain:
-
 <details>
 <summary><strong>Why Graph Neural Networks (GNN) for traffic?</strong></summary>
 
