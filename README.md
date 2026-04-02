@@ -79,18 +79,34 @@ If you are using this project for an interview or portfolio piece, make sure you
 
 ---
 
-## 🐦 Twitter / X Sharing Hook
 
-**Check out this sample thread template to show off your project on Twitter:**
 
-> 🚀 Just built an end-to-end Spatio-Temporal Graph Neural Network (STGNN) to predict dynamic city traffic and optimize travel routes! 🚦🗺️
-> 
-> Here’s how I combined Deep Learning and Graph Theory to predict real-world congestion: 🧵👇
->
-> 1️⃣ Used standard CNN? Nope. Cities aren't grids. I used a Graph Attention Network (GAT) to analyze the complex topology of road networks. 
-> 2️⃣ Handled time data naturally by layering an LSTM to predict multi-step horizons (future traffic blocks).
-> 3️⃣ Piped the predictions right into OpenStreetMap and plotted dynamic routing logic via A* search constraints. 
->
-> Code is open source! #MachineLearning #GNN #Python #DataScience #AI
+graph TD
+    A[User Input: Start & Goal Text] -->|Geopy Nominatim| B(Geocoding Layer)
+    B -->|Lat / Lon Coordinates| C[OSMnx Mapping Engine]
+    
+    subgraph Stage 1: Geospatial Extraction
+        C -->|Download/Cache City Map| D[(Street Network Graph)]
+        D -->|Identifies Nodes & Edges| E[Graph Tensor Conversion]
+    end
 
-*(Feel free to attach a small screen recording of your Folium Map route generation alongside this tweet!)*
+    subgraph Stage 2: Deep Learning Engine
+        E --> F{STGNN Architecture}
+        F -->|Spatial Block| G[Graph Attention Network - GAT]
+        G -->|Learns Road Connections| H[LSTM Temporal Layer]
+        H -->|Processes Time-sequence| I[Predict Future Traffic Speeds]
+    end
+    
+    subgraph Stage 3: Dynamic Pathfinding
+        I -->|Project Speeds onto Graph| J[Route Optimizer]
+        D -->|Distance & Coordinates| J
+        J -->|Cost = Distance / Predicted Speed| K[A* Search Algorithm]
+        K -->|Evaluate Safest/Fastest Path| L[Optimal Route Path Array]
+    end
+    
+    subgraph Stage 4: Visualization
+        L --> M[Map Visualizer - Folium]
+        D --> M
+        I --> M
+        M --> N((Interactive Output: HTML Map))
+    end
