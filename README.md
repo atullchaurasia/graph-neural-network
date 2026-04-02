@@ -2,89 +2,35 @@
 
 > **Spatio-Temporal Graph Neural Networks (STGNN) on Real-World Maps** 🌍📈
 
-An end-to-end Machine Learning pipeline that predicts future traffic speeds and dynamically optimizes city routes using a hybrid Spatio-Temporal Graph Neural Network architecture (GAT + LSTM) alongside OpenStreetMap integration.
+An end-to-end Machine Learning pipeline that predicts future traffic speeds and dynamically optimizes city routes using a hybrid **Spatio-Temporal Graph Neural Network** architecture (GAT + LSTM) alongside OpenStreetMap integration.
 
 ---
 
-## 🌟 Overviews
+## 🌟 Overview
 
-Traditional routing algorithms calculate the shortest path based on static distances. However, real-world travel relies heavily on **dynamic traffic conditions**. 
+Traditional routing algorithms calculate the shortest path based on **static distances**. However, real-world travel relies heavily on **dynamic traffic conditions**.
 
-This system uses Graph Neural Networks to ingest historical traffic context, predict what traffic will look like in the future, and layer those speed predictions over city graphs to run intelligent route optimization (A* Search).
+This system uses Graph Neural Networks to ingest historical traffic context, predict what traffic will look like in the future, and layer those speed predictions over city graphs to run intelligent route optimization (A\* Search).
 
 ### 🎯 Key Features
-* 🧠 **Spatio-Temporal Prediction Model:** Combines Graph Attention Networks (GAT) to understand spatial road topology and Long Short-Term Memory (LSTM) layers to understand time dynamics.
-* 🗺️ **Real-World Map Integration:** Automatically pulls city street networks (e.g., Indore, India) via `osmnx`.
-* 📍 **Robust Geocoding:** Translates natural language places (e.g., "Rajwada, Indore") to precise GPS coordinates.
-* 🚦 **Graph-Based Routing:** Derives dynamic edge limits, adjusting constraints based on traffic node capacity, and solves for the most efficient path.
-* 📊 **Interactive Heatmaps:** Generates interactive [Folium](https://python-visualization.github.io/folium/) HTML maps demonstrating node-level predictions and optimal routes.
+
+- 🧠 **Spatio-Temporal Prediction Model:** Combines Graph Attention Networks (GAT) to understand spatial road topology and Long Short-Term Memory (LSTM) layers to capture time dynamics.
+- 🗺️ **Real-World Map Integration:** Automatically pulls city street networks (e.g., Indore, India) via `osmnx`.
+- 📍 **Robust Geocoding:** Translates natural language places (e.g., `"Rajwada, Indore"`) to precise GPS coordinates.
+- 🚦 **Graph-Based Routing:** Derives dynamic edge limits, adjusting constraints based on traffic node capacity, and solves for the most efficient path.
+- 📊 **Interactive Heatmaps:** Generates interactive [Folium](https://python-visualization.github.io/folium/) HTML maps demonstrating node-level predictions and optimal routes.
 
 ---
 
-## 🛠 Flow & Architecture
+## 🏗️ Architecture & Pipeline
 
-The pipeline consists of three major stages: Geospatial Extraction, STGNN Prediction, and Route Optimization.
+The pipeline consists of **four major stages**: Geospatial Extraction → Deep Learning → Route Optimization → Visualization.
 
-### 1. Spatial Structure & Graph Build
-To run predictions on a map, we need a mathematical graph representation of the streets:
-* Uses `OpenStreetMap` via `osmnx` to download a drive network for a given city.
-* Every intersection becomes a **Node** and every road segment becomes an **Edge**.
-* Translates starting points (e.g., "Airport") and destinations to the nearest graph nodes dynamically.
-
-### 2. Spatio-Temporal Graph Neural Network (STGNN)
-The core intelligence engine designed to process `[Batch, Time, Nodes, Features]`:
-* **Spatial Block (GAT):** Uses Graph Attention Networks (`models/gat_conv.py`). Unlike static convolutions, GAT allows the network to "attend" (give more weight/importance) to heavily congested adjacent nodes instead of treating all connecting roads equally.
-* **Temporal Block (LSTM):** Processes the sequence of spatial encodings to predict temporal variations. Traffic at `T=0` influences traffic at `T+15mins`. The `models/temporal.py` builds the memory needed to extrapolate future edge speeds.
-
-### 3. Dynamic Optimization Pathing (A\*)
-* The STGNN generates a predicted speed tensor for every single road in the city.
-* The `RouteOptimizer` maps these predicted speeds alongside Haversine distances to calculate a realistic **travel time** per edge.
-* An **A* Search Algorithm** explores the graph. Using the dynamic travel times as weights (and geographical distance as a heuristic), it discovers the optimal minimum-time path.
-
----
-
-## 🚀 Quick Start Guide
-
-Want to run this yourself? Follow these steps:
-
-### Installation
-```bash
-# Clone the repository and install dependencies
-git clone <repository_url>
-pip install -r requirements.txt
 ```
-
-### Try Route Prediction
-You can immediately predict routes dynamically over the real-world street network.
-```bash
-# Predicts traffic globally and finds the fastest route
-python predict_indore.py --start_loc "Devi Ahilyabai Holkar Airport, Indore" --goal_loc "Musakhedi, Indore"
-```
-Once completed, simply open `visualizations/indore_custom_route.html` in your web browser!
-
----
-
-## 📚 Interview Prep: Core Concepts to Learn 
-
-If you are using this project for an interview or portfolio piece, make sure you can explain these concepts natively:
-
-1. **Why Graph Neural Networks (GNN)?** 
-   * *Answer:* Standard CNNs work perfectly on a rigid grid (like an image). City roads, however, are non-Euclidean structures (graphs). A GNN naturally adapts to vertices (intersections) and edges (roads), allowing the ML model to pass "traffic messages" along connected pathways.
-2. **What is Graph Attention (GAT) vs Graph Convolution (GCN)?** 
-   * *Answer:* A traditional GCN uses static adjacency matrices to pool neighbor data. A GAT applies an Attention Mechanism, assigning dynamic weights to neighbor nodes (e.g., recognizing that an accident on Main St impacts traffic far more than normal flow on Side St).
-3. **How does A* differ from Dijkstra here?** 
-   * *Answer:* We use A* because it incorporates an informed heuristic (straight-line Haversine distance to the goal) to guide the search forward, dramatically reducing search time over large 60,000+ node city graphs compared to Dijkstra.
-4. **How do you evaluate standard Traffic Models?**
-   * *Answer:* You typically look at Mean Absolute Error (MAE), Root Mean Square Error (RMSE), and Mean Absolute Percentage Error (MAPE). The goal is minimizing error across 15m, 30m, and 60m time horizons.
-
----
-
-
-
 graph TD
     A[User Input: Start & Goal Text] -->|Geopy Nominatim| B(Geocoding Layer)
     B -->|Lat / Lon Coordinates| C[OSMnx Mapping Engine]
-    
+
     subgraph Stage 1: Geospatial Extraction
         C -->|Download/Cache City Map| D[(Street Network Graph)]
         D -->|Identifies Nodes & Edges| E[Graph Tensor Conversion]
@@ -96,17 +42,179 @@ graph TD
         G -->|Learns Road Connections| H[LSTM Temporal Layer]
         H -->|Processes Time-sequence| I[Predict Future Traffic Speeds]
     end
-    
+
     subgraph Stage 3: Dynamic Pathfinding
         I -->|Project Speeds onto Graph| J[Route Optimizer]
         D -->|Distance & Coordinates| J
         J -->|Cost = Distance / Predicted Speed| K[A* Search Algorithm]
         K -->|Evaluate Safest/Fastest Path| L[Optimal Route Path Array]
     end
-    
+
     subgraph Stage 4: Visualization
         L --> M[Map Visualizer - Folium]
         D --> M
         I --> M
         M --> N((Interactive Output: HTML Map))
     end
+```
+
+---
+
+## 🔬 Stage-by-Stage Breakdown
+
+### Stage 1 — Spatial Structure & Graph Build
+
+To run predictions on a map, we need a mathematical graph representation of the streets:
+
+- Uses **OpenStreetMap** via `osmnx` to download a drive network for a given city.
+- Every intersection becomes a **Node** and every road segment becomes an **Edge**.
+- Translates starting points (e.g., `"Airport"`) and destinations to the nearest graph nodes dynamically.
+
+### Stage 2 — Spatio-Temporal Graph Neural Network (STGNN)
+
+The core intelligence engine designed to process tensors of shape `[Batch, Time, Nodes, Features]`:
+
+| Component | File | Role |
+|---|---|---|
+| **Spatial Block (GAT)** | `models/gat_conv.py` | Attends to congested neighbor nodes with dynamic weights |
+| **Temporal Block (LSTM)** | `models/temporal.py` | Learns traffic sequences across time steps (T, T+15m, T+30m...) |
+
+> Unlike static GCN convolutions, GAT allows the network to **"attend"** — giving more weight to heavily congested adjacent nodes rather than treating all connecting roads equally.
+
+### Stage 3 — Dynamic Optimization Pathing (A\*)
+
+- The STGNN generates a **predicted speed tensor** for every road in the city.
+- The `RouteOptimizer` maps predicted speeds + Haversine distances → realistic **travel time per edge**.
+- **A\* Search** explores the graph using dynamic travel times as weights and geographic distance as a heuristic, discovering the minimum-time path efficiently.
+
+### Stage 4 — Visualization
+
+- Results are rendered as an **interactive Folium HTML map**.
+- Nodes are color-coded by predicted traffic speed (heatmap).
+- The optimal route is overlaid as a highlighted polyline.
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.8+
+- pip
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository_url>
+cd traffic-gnn
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Run Route Prediction
+
+```bash
+# Predict traffic globally and find the fastest route
+python predict_indore.py \
+  --start_loc "Devi Ahilyabai Holkar Airport, Indore" \
+  --goal_loc "Musakhedi, Indore"
+```
+
+Once completed, open the output in your browser:
+
+```bash
+open visualizations/indore_custom_route.html
+# or on Windows: start visualizations/indore_custom_route.html
+```
+
+---
+
+## 📁 Project Structure
+
+```
+traffic-gnn/
+│
+├── models/
+│   ├── gat_conv.py          # Graph Attention Network (Spatial Block)
+│   ├── temporal.py          # LSTM Temporal Layer
+│   └── stgnn.py             # Full STGNN Model
+│
+├── visualizations/          # Output HTML maps (generated)
+│
+├── predict_indore.py        # Main prediction + routing script
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## 📊 Evaluation Metrics
+
+Traffic prediction models are evaluated across multiple time horizons:
+
+| Metric | Description |
+|---|---|
+| **MAE** | Mean Absolute Error — average magnitude of prediction errors |
+| **RMSE** | Root Mean Square Error — penalizes large deviations more heavily |
+| **MAPE** | Mean Absolute Percentage Error — scale-independent relative error |
+
+Evaluated at **15-minute**, **30-minute**, and **60-minute** prediction horizons.
+
+---
+
+## 📚 Core Concepts (Interview Prep)
+
+If you're using this project for an interview or portfolio, be ready to explain:
+
+<details>
+<summary><strong>Why Graph Neural Networks (GNN) for traffic?</strong></summary>
+
+Standard CNNs work on rigid grids (like images). City roads are **non-Euclidean structures** — irregular graphs with variable connectivity. A GNN naturally adapts to vertices (intersections) and edges (roads), allowing the ML model to pass "traffic messages" along connected pathways.
+
+</details>
+
+<details>
+<summary><strong>GAT vs GCN — what's the difference?</strong></summary>
+
+A traditional **GCN** uses static adjacency matrices to pool neighbor data. A **GAT** applies an Attention Mechanism, assigning dynamic weights to neighbor nodes — for example, recognizing that an accident on a main road impacts traffic far more than normal flow on a side street.
+
+</details>
+
+<details>
+<summary><strong>Why A* over Dijkstra?</strong></summary>
+
+A\* incorporates an **informed heuristic** (straight-line Haversine distance to the goal) to guide the search forward, dramatically reducing search time over large 60,000+ node city graphs compared to Dijkstra's blind exploration.
+
+</details>
+
+<details>
+<summary><strong>How are predictions evaluated?</strong></summary>
+
+Using **MAE**, **RMSE**, and **MAPE** across 15m, 30m, and 60m time horizons. Lower error at longer horizons indicates a more robust temporal model.
+
+</details>
+
+---
+
+## 🧰 Tech Stack
+
+| Tool | Purpose |
+|---|---|
+| `PyTorch` | STGNN model training & inference |
+| `osmnx` | OpenStreetMap street network download |
+| `geopy` | Nominatim geocoding |
+| `folium` | Interactive HTML map generation |
+| `networkx` | Graph data structures & A\* search |
+| `numpy` | Tensor & matrix operations |
+
+---
+
+## 📄 License
+
+This project is open source. See [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">Built with 🧠 GNNs + 🗺️ OpenStreetMap + ⚡ A* Search</p>
