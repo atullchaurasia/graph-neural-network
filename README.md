@@ -17,6 +17,7 @@ This system uses Graph Neural Networks to ingest historical traffic context, pre
 - 🧠 **Spatio-Temporal Prediction Model:** Combines Graph Attention Networks (GAT) to understand spatial road topology and Long Short-Term Memory (LSTM) layers to capture time dynamics.
 - 🗺️ **Real-World Map Integration:** Automatically pulls city street networks (e.g., Indore, India) via `osmnx`.
 - 📍 **Robust Geocoding:** Translates natural language places (e.g., `"Rajwada, Indore"`) to precise GPS coordinates.
+- 📡 **Live TomTom Injection:** Dynamically polls the TomTom API for live anchor speeds and injects them into the GNN to ensure real-world accuracy.
 - 🚦 **Graph-Based Routing:** Derives dynamic edge limits, adjusting constraints based on traffic node capacity, and solves for the most efficient path.
 - 📊 **Interactive Heatmaps:** Generates interactive [Folium](https://python-visualization.github.io/folium/) HTML maps demonstrating node-level predictions and optimal routes.
 
@@ -117,9 +118,11 @@ pip install -r requirements.txt
 
 ```bash
 # Predict traffic globally and find the fastest route
+# Add --tomtom_key right at the end to inject LIVE real-world traffic data!
 python predict_indore.py \
   --start_loc "Devi Ahilyabai Holkar Airport, Indore" \
-  --goal_loc "Musakhedi, Indore"
+  --goal_loc "Musakhedi, Indore" \
+  --tomtom_key "YOUR_TOMTOM_API_KEY_HERE"
 ```
 
 Once completed, open the output in your browser:
@@ -191,6 +194,13 @@ A\* incorporates an **informed heuristic** (straight-line Haversine distance to 
 <summary><strong>How are predictions evaluated?</strong></summary>
 
 Using **MAE**, **RMSE**, and **MAPE** across 15m, 30m, and 60m time horizons. Lower error at longer horizons indicates a more robust temporal model.
+
+</details>
+
+<details>
+<summary><strong>How do you handle API Data Costs (TomTom/Google)?</strong></summary>
+
+Real-time APIs cap free tiers strictly (e.g., 2,500 calls/day). Querying all 66,000 roads in a city would exhaust limits instantly. This pipeline intelligently computes an interpolated line between the start and goal, probes the API for just **15 sparse Anchor Nodes**, and allows the **STGNN model to organically extrapolate and predict** the remaining 65,985 roads. This perfectly fuses Live Data with Deep Learning while keeping infrastructure costs exactly at $0!
 
 </details>
 
