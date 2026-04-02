@@ -21,6 +21,7 @@ def parse_args():
     p.add_argument("--start_loc", type=str, default="Rajwada, Indore")
     p.add_argument("--goal_loc", type=str, default="DAVV, Indore")
     p.add_argument("--output_dir", type=str, default="visualizations")
+    p.add_argument("--tomtom_key", type=str, default=None, help="Your TomTom API Key")
     return p.parse_args()
 
 def main():
@@ -107,6 +108,45 @@ def main():
     
     # Scale synthetic outputs to realistic km/h bounds (20 km/h - 60 km/h)
     speeds_kmh = ((speeds_norm - speeds_norm.min()) / (speeds_norm.max() - speeds_norm.min())) * 40 + 20
+
+    # ── Live TomTom API Integration ───────────────────────────────────────
+    tomtom_key = os.environ.get("TOMTOM_API_KEY", args.tomtom_key)
+    
+    if tomtom_key:
+        print("\n[Real-Time Mode Enabled] Hooking into TomTom API...")
+        import requests
+        
+        # We can't query 66,000 edges without hitting limits. 
+        # So we sample 15 'Sensor' anchor nodes dynamically between Start & Goal!
+        lat_step = (goal.latitude - start.latitude) / 15
+        lon_step = (goal.longitude - start.longitude) / 15
+        
+        live_sensor_count = 0
+        for i in range(15):
+            probe_lat = start.latitude + (lat_step * i)
+            probe_lon = start.longitude + (lon_step * i)
+            
+            # Find nearest node in our Graph to this exact probe location
+            closest_node_id = ox.distance.nearest_nodes(G, probe_lon, probe_lat)
+            node_idx = node2idx[closest_node_id]
+            
+            # Ping TomTom!
+            url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?point={probe_lat},{probe_lon}&key={tomtom_key}"
+            try:
+                res = requests.get(url, timeout=3)
+                if res.status_code == 200:
+                    data = res.json()
+                    live_speed = data["flowSegmentData"]["currentSpeed"]
+                    
+                    # Inject Real-Time speed directly into our prediction tensor!
+                    speeds_kmh[node_idx] = live_speed
+                    live_sensor_count += 1
+            except Exception as e:
+                pass
+                
+        print(f"[SUCCESS] Injected {live_sensor_count} Real-Time TomTom sensor points into the STGNN matrix!\n")
+    else:
+        print("\n[WARNING] No TomTom API key detected. Running in STGNN Synthetic mode.")
 
     # ── Route optimization ────────────────────────────────────────────────
     start_nearest = ox.distance.nearest_nodes(G, start.longitude, start.latitude)
