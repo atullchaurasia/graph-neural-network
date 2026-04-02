@@ -26,7 +26,7 @@ This system uses Graph Neural Networks to ingest historical traffic context, pre
 
 The pipeline consists of **four major stages**: Geospatial Extraction → Deep Learning → Route Optimization → Visualization.
 
-```
+```mermaid
 graph TD
     A[User Input: Start & Goal Text] -->|Geopy Nominatim| B(Geocoding Layer)
     B -->|Lat / Lon Coordinates| C[OSMnx Mapping Engine]
